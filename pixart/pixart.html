@@ -1,0 +1,304 @@
+<!doctype html>
+<html>
+<head>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+<meta charset="utf-8" />
+<title>pixart - by Jason Do</title>
+
+<!-- Welcome to ZIM at https://zimjs.com - Code Creativity!                              -->
+<!-- ZIM runs on the HTML Canvas powered by JavaScript and CreateJS https://createjs.com -->
+<!-- ZIM is free to use. You can donate to help improve ZIM at https://zimjs.com/donate  -->
+
+<script src="https://zimjs.org/cdn/1.3.2/createjs.js"></script>
+<script src="https://zimjs.org/cdn/cat/01/zim.js"></script>
+<!-- use zimjs.com/distill for minified individual functions! -->
+
+<script>
+
+// SCALING OPTIONS
+// scaling can have values as follows with full being the default
+// "fit"	sets canvas and stage to dimensions and scales to fit inside window size
+// "outside"	sets canvas and stage to dimensions and scales to fit outside window size
+// "full"	sets stage to window size with no scaling
+// "tagID"	add canvas to HTML tag of ID - set to dimensions if provided - no scaling
+
+const scaling = "fit"; // this will resize to fit inside the screen dimensions
+const width = 1024;
+const height = 768;
+const color = darker; // ZIM colors like green, blue, pink, faint, clear, etc.
+const outerColor = darker; // any HTML colors like "violet", "#333", etc. are fine to use
+const assets = ["night.png", "night2.png", "sun.png", "day.png", "day2.png", "plogo.png", "moon.png",
+"home.png", "save.png", {id:"psounds", maxNum:1, src:"psounds.mp3"}, {id:"sound2", maxNum:1, src:"sound2.mp3"},
+{id:"sound3", maxNum:1, src:"sound3.mp3"}, {id:"save", maxNum:1, src:"save.mp3"}, {id:"hint", maxNum:1, src:"hintsound.mp3"},
+{id:"home", maxNum:1, src:"home.mp3"}, {id:"colour", maxNum:1, src:"colour.mp3"}, "noface.png", {font:"pix", src:"pix.ttf"}];
+const path = ["assets/"];
+
+const waiter = new Waiter({backgroundColor:"green", corner: 0});
+
+const frame = new Frame(scaling, width, height, color, outerColor, assets, path, waiter);
+frame.on("ready", () => { // ES6 Arrow Function - like function(){}
+    zog("ready from ZIM Frame"); // logs in console (F12 - choose console)
+
+    const stage = frame.stage;
+    let stageW = frame.width;
+    let stageH = frame.height;
+
+    // see https://zimjs.com/learn.html for video and code tutorials
+    // see https://zimjs.com/docs.html for documentation
+    // see https://zimjs.com/bits.html for 64 Interactive Media techniques
+
+    // *** NOTE: ZIM Cat defaults to time in seconds
+    // All previous versions, examples, videos, etc. have time in milliseconds
+    // This can be set back with TIME = "milliseconds" but we suggest you give it a try!
+    // There will be a warning in the conslole if your animation is not moving ;-)
+
+    const start = new Container(stageW, stageH).addTo(stage);
+
+    const night = asset("night.png").center().addTo(start);
+
+    const scroll = new Scroller({backing:night, direction:-1, container:start, speed:1});
+
+    const logo = asset("plogo.png").sca(1).pos(0, 125 ,CENTER, start).cur();
+
+    const buttonlabel = new Label({
+        text:"START",
+        size:45,
+        font:"pix",
+        color:white,
+        bold:true,
+    });
+
+    const buttonlabel2 = new Label({
+        text:"ABOUT",
+        size:45,
+        font:"pix",
+        color:white,
+        bold:true,
+    });
+
+    const button = new Button({
+        width: 250,
+        height: 55,
+        label:buttonlabel,
+        backgroundColor:"black",
+        rollBackgroundColor:"red",
+        gradient:.2,
+        corner:0,
+    }).pos(0,325,CENTER);
+
+    const button2 = new Button({
+        width: 250,
+        height: 55,
+        label:buttonlabel2,
+        backgroundColor:"black",
+        rollBackgroundColor:"#0000FF",
+        gradient:.2,
+        corner:0,
+    }).pos(0,400,CENTER);
+
+    logo.on("click", function(){
+        asset("psounds.mp3").play({volume:5,interrupt:"any"});
+    });
+
+    button.on("click", function(){
+        asset("home.mp3").play({volume:1, interrupt:"any"});
+        night.removeFrom();
+        logo.removeFrom();
+        button.removeFrom();
+        button2.removeFrom();
+        start.removeFrom();
+        stage.update();
+        startscreen();
+    });
+
+    button2.on("click", function(){
+        asset("sound2.mp3").play({volume:2, interrupt:"any"});
+        night.removeFrom();
+        logo.removeFrom();
+        button.removeFrom();
+        button2.removeFrom();
+        start.removeFrom();
+        stage.update();
+        helpscreen();
+    });
+
+    function startscreen(){
+        const screen = new Container(stageW, stageH).addTo(stage);
+        const bg = asset("day.png").sca(0.8).pos(0,-90,CENTER).addTo().alp(0.8);
+        const home = asset("home.png").cur().sca(0.5).pos(20,25);
+        const hsound = asset("sound3.mp3");
+        const loader = new Loader({width:1, height:1,label:"", backgroundColor:""}).addTo(screen);
+
+        let cols = 17;
+	    let rows = 17;
+	    let num = cols * rows;
+        let size = 30;
+	    let spacing = 5;
+	    let square;
+	    let w = cols*(size+spacing);
+	    let h = rows*(size+spacing);
+
+    const board = new Tile(new Rectangle(size,size,white), cols, rows, spacing, spacing).center().cur();
+
+    const cp = new ColorPicker({
+        width:300,
+        colors:["red","#FFA500","yellow","#32CD32","blue","purple","black","white"],
+        cols:8,
+        backgroundColor:"black",
+    }).center().rot(90).pos(120,379);
+
+    cp.on("click", function(){
+        asset("colour.mp3").play({volume:4,interupt:"any"});
+    });
+
+    stage.on("pressmove", function() {
+        const index = board.hitTestGrid(w, h, cols, rows, stage.mouseX, stage.mouseY, 0, 0, spacing, spacing);
+
+	if (index >= 0) {
+		square = board.getChildAt(index);
+		if (square.color != cp.selectedColor) {
+		square.color = cp.selectedColor;
+		stage.update();
+		}
+      }
+    });
+
+    const sun = asset("sun.png").sca(0.35).cur().pos(425,25,CENTER);
+
+    sun.on("click", function(){
+        asset("sound3.mp3").play({volume:6, interupt:"any"});
+        const moon = asset("moon.png").sca(0.15).cur().pos(425,45, CENTER);
+        const bg2 = asset("day2.png").sca(0.75).pos(0,0,CENTER).addTo(screen);
+        sun.removeFrom();
+        bg.removeFrom();
+
+    moon.on("click", function(){
+        asset("sound3.mp3").play({volume:6, interupt:"any"});
+        const sun = asset("sun.png").sca(0.35).cur().pos(425,25,CENTER);
+        const bg = asset("day.png").sca(0.8).pos(0,-90,CENTER).addTo(screen);
+        moon.removeFrom();
+        bg2.removeFrom();
+    });
+});
+
+    const save = asset("save.png").sca(0.15).cur().pos(425,45,CENTER,BOTTOM);
+
+    const panelabel = new Label({
+        text:"HIGHSCORE! awesome pixart! remember to share your creation with others!",
+        size:35,
+        font:"pix",
+        color:"yellow",
+        bold:true,
+        align:"center",
+        labelWidth: 300,
+        labelHeight:200,
+    });
+
+    save.on("click", function(){
+        asset("save.mp3").play({volume:4, interrupt:"any"});
+        loader.save(); //allows users to save their image, plays a winning tune!
+        save.removeFrom();
+        timeout(1, function() {
+            const pane = new Pane({
+            width: 450,
+            height: 300,
+            label: panelabel,
+            backgroundColor: "black",
+            corner: 0,
+            }).center();
+        const sparks = new Emitter(new Rectangle(5,5,"yellow")).center(pane);
+        });
+    });
+
+    home.on("click", function(){
+        //asset("home.mp3").play({volume:5,interrupt:"any"});
+        zgo("pixart.html");
+    });
+}
+
+    function helpscreen(){
+        const helpscreen = new Container(stageW, stageH).addTo(stage);
+        const bg2 = asset("night2.png").center();
+        const scroll2 = new Scroller({backing:bg2, direction:-1, container:helpscreen, speed:1});
+        const home = asset("home.png").cur().sca(0.5).pos(20,25);
+
+    const hlabel = new Label({
+        text:"What is pixart?",
+        font:"pix",
+        color:"yellow",
+        size:65,
+        bold:true,
+    }).pos(0,180,CENTER,TOP);
+
+    const tlabel = new Label({
+        text:"An interactive 8bit art canvas! Draw, Play, Create!",
+        font:"pix",
+        color:"white",
+        size:35,
+    }).pos(0,255,CENTER,TOP);
+
+    const hint = new Label({
+        text:"Hint: Click around pixart! See what you can discover!",
+        font:"pix",
+        color:"yellow",
+        size:25,
+    }).cur().pos(0,310,CENTER,TOP);
+
+    hint.on("click", function(){
+        asset("hintsound.mp3").play({volume:4, interrupt:"any"});
+        const face = asset("noface.png").sca(0.3).pos(350,-35,CENTER,BOTTOM);
+        timeout(3, function(){
+            face.removeFrom();
+        });
+    });
+
+    const sbuttonlabel = new Label({
+        text:"START NOW",
+        size:45,
+        font:"pix",
+        color:white,
+        bold:true,
+    });
+
+    const sbutton = new Button({
+        width: 250,
+        height: 55,
+        label:sbuttonlabel,
+        backgroundColor:"black",
+        rollBackgroundColor:"red",
+        gradient:.2,
+        corner:0,
+    }).pos(0,400,CENTER);
+
+    sbutton.on("click", function(){
+        asset("home.mp3").play({volume:1, interrupt:"any"});
+        scroll2.pause();
+        helpscreen.removeFrom();
+        hint.removeFrom();
+        tlabel.removeFrom();
+        hlabel.removeFrom();
+        bg2.removeFrom();
+        home.removeFrom();
+        sbutton.removeFrom();
+        startscreen();
+    });
+
+    home.on("click", function(){
+        //asset("home.mp3").play({volume:5,interrupt:"any"});
+        zgo("pixart.html");
+    });
+
+}
+    stage.update();
+});
+
+</script>
+
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+
+</head>
+
+<body>
+<!-- canvas with id="myCanvas" is made by zim Frame -->
+</body>
+</html>
